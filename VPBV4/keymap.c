@@ -32,6 +32,10 @@ bool achordion_chord(uint16_t tap_hold_keycode,
   //  if (other_keycode == KC_Q) { return true; }
       break;
 
+    case MT(MOD_LALT, KC_S):
+      if (other_keycode == LT(1,KC_BSPC)) { return true; }
+      break;
+    
     case MT(MOD_RGUI, KC_N):
       if (other_keycode == LT(2,KC_SPACE)) { return true; }
       if (other_keycode == KC_ENTER) { return true; }
