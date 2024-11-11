@@ -38,7 +38,7 @@ bool achordion_chord(uint16_t tap_hold_keycode,
       break;
 
     case MT(MOD_RALT, KC_E):
-      if (other_keycode == LT(3,KC_SPACE)) { return true; }
+      if (other_keycode == LT(2,KC_SPACE)) { return true; }
       break;
   }
   return achordion_opposite_hands(tap_hold_record, other_record);
