@@ -1,12 +1,58 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
+#include "features/achordion.h"
+#include "features/select_word.h"
 #define MOON_LED_LEVEL LED_LEVEL
 #define ML_SAFE_RANGE SAFE_RANGE
 
+
 enum custom_keycodes {
   RGB_SLD = ML_SAFE_RANGE,
+  SELWORD = SAFE_RANGE,
   MAC_MISSION_CONTROL,
 };
+
+
+void matrix_scan_user(void) {
+  achordion_task();
+  select_word_task();  
+}
+
+bool achordion_chord(uint16_t tap_hold_keycode,
+                     keyrecord_t* tap_hold_record,
+                     uint16_t other_keycode,
+                     keyrecord_t* other_record) {
+  // Exceptionally consider the following chords as holds, even though they
+  // are on the same hand
+  switch (tap_hold_keycode) {
+    case MT(MOD_LGUI, KC_T):
+      if (other_keycode == KC_A) { return true; }
+      if (other_keycode == KC_TAB) { return true; }
+  //  if (other_keycode == KC_W) { return true; }
+  //  if (other_keycode == KC_Q) { return true; }
+      break;
+
+    case MT(MOD_RGUI, KC_N):
+      if (other_keycode == LT(3,KC_SPACE)) { return true; }
+      if (other_keycode == KC_ENTER) { return true; }
+      break;
+
+    case MT(MOD_RALT, KC_E):
+      if (other_keycode == LT(3,KC_SPACE)) { return true; }
+      break;
+  }
+  return achordion_opposite_hands(tap_hold_record, other_record);
+}
+
+uint16_t achordion_timeout(uint16_t tap_hold_keycode) {
+  switch (tap_hold_keycode) {
+    case LT(1,KC_BSPC):
+    case LT(2,KC_SPACE):
+      return 0;  // Bypass Achordion for these keys.
+  }
+
+  return 800;  // Otherwise use a timeout of 800 ms.
+}
 
 
 
@@ -32,7 +78,7 @@ enum tap_dance_codes {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_voyager(
-    TD(DANCE_0),    KC_EXLM,        KC_AT,          TD(DANCE_1),    TD(DANCE_2),    TD(DANCE_3),                                    KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       KC_TRANSPARENT, TD(DANCE_5),    
+    TD(DANCE_0),    KC_EXLM,        KC_AT,          TD(DANCE_1),    TD(DANCE_2),    TD(DANCE_3),                                    KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       SELWORD, TD(DANCE_5),    
     LT(3,KC_TAB),   KC_Q,           KC_W,           KC_F,           KC_P,           KC_B,                                           KC_J,           KC_L,           KC_U,           KC_Y,           KC_SCLN,        KC_EQUAL,       
     KC_DELETE,      KC_A,           MT(MOD_LCTL, KC_R),MT(MOD_LALT, KC_S),MT(MOD_LGUI, KC_T),ALL_T(KC_G),                                    MEH_T(KC_M),    MT(MOD_RGUI, KC_N),MT(MOD_RALT, KC_E),KC_I,           KC_O,           LALT(LSFT(KC_RBRC)),
     TD(DANCE_4),    KC_Z,           KC_X,           KC_C,           KC_D,           KC_V,                                           KC_K,           KC_H,           KC_SLASH,       KC_COMMA,       KC_DOT,         TD(DANCE_6),    
@@ -157,6 +203,9 @@ bool rgb_matrix_indicators_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (!process_achordion(keycode, record)) { return false; }
+  if (!process_select_word(keycode, record, SELWORD)) { return false; }
+  
   switch (keycode) {
     case MAC_MISSION_CONTROL:
       HCS(0x29F);
