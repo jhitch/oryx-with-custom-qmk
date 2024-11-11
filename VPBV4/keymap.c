@@ -33,7 +33,7 @@ bool achordion_chord(uint16_t tap_hold_keycode,
       break;
 
     case MT(MOD_RGUI, KC_N):
-      if (other_keycode == LT(3,KC_SPACE)) { return true; }
+      if (other_keycode == LT(2,KC_SPACE)) { return true; }
       if (other_keycode == KC_ENTER) { return true; }
       break;
 
